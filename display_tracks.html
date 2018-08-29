@@ -23,36 +23,31 @@
         container: 'map',
         style: 'mapbox://styles/mapbox/streets-v9',
         center: [-84.19836102,10.01950755,1],
-        zoom: 12
+        zoom: 15
     });
 
 
     map.on('load', function () {
-        var lineWidth = 2;
-        addGpxTrace( map,
-            "trace2",
-            "https://raw.githubusercontent.com/labexp/trazas-transporte-publico/master/bus_alajuela-santabarbara/2554611.gpx",
-            "#0f0",
-            lineWidth);
 
-        addGpxTrace( map, 
-            "trace3",
-            "https://raw.githubusercontent.com/labexp/trazas-transporte-publico/master/bus_alajuela-targuases/2489506.gpx",
-            "#00f",
-            lineWidth);
+        var github_parameters = {  
+            username : "labexp",
+            branch : "master",
+            repo : "trazas-transporte-publico",
+            path : "bus_santabarbara-alajuela/asistentes"
+        };
 
-        addGpxTrace( map, 
-            "trace5",
-            "https://raw.githubusercontent.com/labexp/trazas-transporte-publico/master/bus_targuases-alajuela/2600379.gpx",
-            "#f00",
-            lineWidth);
-
-        addGpxTrace( map, 
-            "trace4",
-            "https://raw.githubusercontent.com/labexp/trazas-transporte-publico/master/bus_alajuela-giralda/2546300.gpx",
-            "#0ff",
-            lineWidth);        
-
+        var traces_urls = requestGpxTracesUrls(github_parameters);
+        // console.debug(list);
+        var lineWidth = 5;
+        var rendering_color = 'rgba(255,0,0,0.1)';
+        for(var i=0 ; i<traces_urls.length ; i++){
+            addGpxTrace( map,
+                "trace"+i,
+                traces_urls[i],
+                rendering_color,
+                lineWidth);
+            console.debug(i+"-th trace done");
+        }        
         
     });
 
@@ -77,7 +72,9 @@
             },
             "paint": {
                 "line-color": color,
+                //"line-color": color,
                 "line-width": lineWidth
+                //"line-width": lineWidth
             }
         });
     }
@@ -109,11 +106,45 @@
           }
         };
         //For not to continue until the request is done 
-        var sinchronously = false;
-        httpRequest.open("GET",gpxUrl,sinchronously);
+        var synchronously = false;
+        httpRequest.open("GET",gpxUrl,synchronously);
         httpRequest.send();
         return outputList;
     
+    }
+
+    function requestGpxTracesUrls(github_parameters){
+        var request_url = "https://api.github.com/repos/"+
+            github_parameters.username + "/" +
+            github_parameters.repo + "/" +
+            "contents" + "/" +
+            github_parameters.path + "?" +
+            "ref="+github_parameters.branch;
+            
+
+            // https://api.github.com/repos/labexp/trazas-transporte-publico/contents/bus_santabarbara-alajuela/asistentes?ref=master"
+        
+        var httpRequest = new XMLHttpRequest();
+        var traces_urls = [];
+        httpRequest.onreadystatechange = function(){
+          if(httpRequest.status == 200 && httpRequest.readyState == 4){
+            //Request donde succesfully
+
+            //Parse the response to a JSON object
+            var object = JSON.parse(httpRequest.responseText);
+            for(var i=0 ; i<object.length ; i++) {
+                //Filter only GPX files within the directory
+                if(object[i].name.endsWith(".gpx")){
+                    traces_urls.push(object[i].download_url)
+                }
+            }
+          }
+        };
+        //For not to continue until the request is done 
+        var synchronously = false;
+        httpRequest.open("GET",request_url,synchronously);
+        httpRequest.send();
+        return traces_urls;
     }
     </script>
 
