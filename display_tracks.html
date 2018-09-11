@@ -8,12 +8,22 @@
     <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.47.0/mapbox-gl.css' rel='stylesheet' />
     <style>
         body { margin:0; padding:0; }
-        #map { position:absolute; top:0; bottom:0; width:100%; }
+        /*#map { position:absolute; top:0; bottom:0; width:100%; }*/
+        #map { 
+            width: 700px; 
+            height: 700px;
+            margin: 50px auto;
+        }
     </style>
 </head>
 <body>
+    <p>Seleccione sus archivos</p>
+    <input type="file" id="files" multiple>
+    <br><br>
+    <button id="render">Render Tracks</button>
 
-    <div id='map'></div>
+        <div id='map'></div>
+
     <script>
 
     mapboxgl.accessToken = 'pk.eyJ1IjoiZW1tYW51ZWxhYiIsImEiOiJjamt0NmxpdHcwMnFyM2t0a3Mxbjh5aDFrIn0.7CcPXhDaki4-Y97DT7DYpQ';
@@ -22,39 +32,22 @@
     var map = new mapboxgl.Map({
         container: 'map',
         style: 'mapbox://styles/mapbox/streets-v9',
-        center: [-84.19836102,10.01950755,1],
-        zoom: 15
+        center: [-84.19636102,10.01950755,1],
+        zoom: 13
     });
 
+    document.querySelector("#render").onclick = function(){
+        var files = document.querySelector("#files").files
+        for(var i=0 ; i<files.length ; i++) {
+            addGpxFileToMap(files[i],i);
+        }
 
-    map.on('load', function () {
+    }
 
-        var github_parameters = {  
-            username : "labexp",
-            branch : "master",
-            repo : "trazas-transporte-publico",
-            path : "bus_santabarbara-alajuela/asistentes"
-        };
-
-        var traces_urls = requestGpxTracesUrls(github_parameters);
-        // console.debug(list);
-        var lineWidth = 5;
-        var rendering_color = 'rgba(255,0,0,0.1)';
-        for(var i=0 ; i<traces_urls.length ; i++){
-            addGpxTrace( map,
-                "trace"+i,
-                traces_urls[i],
-                rendering_color,
-                lineWidth);
-            console.debug(i+"-th trace done");
-        }        
-        
-    });
-
-    function addGpxTrace(map, traceId, gpxUrl, color, lineWidth){
+    function renderGpxTrace(traceId, coordinatesList){
         //Get the list of coordinates of the trace
-        var coordinatesList = retrieveCoordinates(gpxUrl);
-
+        color = 'rgba(255,0,0,0.1)';
+        lineWidth = 5;
         //Add the trace to the map
         map.addLayer({
             "id": traceId,
@@ -79,18 +72,13 @@
         });
     }
 
-    function retrieveCoordinates(gpxUrl){
+    function addGpxFileToMap(gpxFile, id){
         //The return value will be a list of lists [lon,lat]
         var outputList = [];
-
-        //Request the content of the gpx file 
-        var httpRequest = new XMLHttpRequest();
-        httpRequest.onreadystatechange = function(){
-
-          if(httpRequest.status == 200 && httpRequest.readyState == 4){
-            //Request donde succesfully
-            var file = httpRequest.responseText;
-
+        //Request the content of the gpx file
+        var reader = new FileReader();
+        reader.onload = function(event){
+            file = event.target.result;
             //Instantiate an object to parse the xml file further
             var parser = new DOMParser();
             var doc = parser.parseFromString(file, "application/xml");
@@ -103,49 +91,13 @@
                 //The coordinates must be in this order for the map to render them correctly
                 outputList.push([lon,lat]);
             }
-          }
+            renderGpxTrace(""+id, outputList);
+            console.debug(id +" track done");
         };
         //For not to continue until the request is done 
-        var synchronously = false;
-        httpRequest.open("GET",gpxUrl,synchronously);
-        httpRequest.send();
-        return outputList;
-    
+        reader.readAsText(gpxFile);
     }
 
-    function requestGpxTracesUrls(github_parameters){
-        var request_url = "https://api.github.com/repos/"+
-            github_parameters.username + "/" +
-            github_parameters.repo + "/" +
-            "contents" + "/" +
-            github_parameters.path + "?" +
-            "ref="+github_parameters.branch;
-            
-
-            // https://api.github.com/repos/labexp/trazas-transporte-publico/contents/bus_santabarbara-alajuela/asistentes?ref=master"
-        
-        var httpRequest = new XMLHttpRequest();
-        var traces_urls = [];
-        httpRequest.onreadystatechange = function(){
-          if(httpRequest.status == 200 && httpRequest.readyState == 4){
-            //Request donde succesfully
-
-            //Parse the response to a JSON object
-            var object = JSON.parse(httpRequest.responseText);
-            for(var i=0 ; i<object.length ; i++) {
-                //Filter only GPX files within the directory
-                if(object[i].name.endsWith(".gpx")){
-                    traces_urls.push(object[i].download_url)
-                }
-            }
-          }
-        };
-        //For not to continue until the request is done 
-        var synchronously = false;
-        httpRequest.open("GET",request_url,synchronously);
-        httpRequest.send();
-        return traces_urls;
-    }
     </script>
 
 </body>
