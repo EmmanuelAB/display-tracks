@@ -1,0 +1,25 @@
+body { 
+	margin:0; padding:0; 
+}
+
+/*#map { position:absolute; top:0; bottom:0; width:100%; }*/
+#map { 
+	width: 700px; 
+	height: 700px;
+	margin: 25px auto;
+}
+
+#header{
+	border: 1px solid black;
+	width: 80%;
+	margin: 20px auto;
+}
+
+.element{
+	margin: 20px auto;
+	display: block;
+}
+
+p{
+	text-align: center;
+}
