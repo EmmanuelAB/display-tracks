@@ -23,3 +23,7 @@ body {
 p{
 	text-align: center;
 }
+
+button{
+	display: none;
+}

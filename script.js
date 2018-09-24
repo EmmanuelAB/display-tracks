@@ -1,8 +1,30 @@
+var fileData = {};
+var render_button, file_input;
+var remainingFiles;
+var date_combo;
+
 function main(){
+
+    // var o = {};
+    // o["hoy"] = [];
+    // o["hoy"].push("hola");
+    // o["hoy"].push("asd");
+    // o["ayer"] = [];
+    // o["ayer"].push("aer");
+    // o["ayer"].push("qwe");
+
+    // console.log(o["lcas"]==null);
+    // return;
+
+    date_combo = document.querySelector("#date");
+    render_button = document.querySelector("#render");
+    fileInput = document.querySelector('#files');
     
     initializeMap();
 
-    document.querySelector("#render").onclick = renderClicked;
+    render_button.onclick = renderClicked;
+
+    setupFileInput();
 
     //temp
     // renderClicked();
@@ -75,22 +97,37 @@ function addGpxFileToMap(gpxFile, id){
 }
 
 function renderClicked(){
-    //Get the selected date
+    return;
+    // Get the selected date from the combo
     var date = document.querySelector("#date").value;
 
+    // Get all the filanames linked with the date in the JSON
+    var filenames = fileData[date];
+
+    // Iterate over the filenames and add each one to the map
+    for (var i = 0 ; i < filenames.length ; i++) {
+        addGpxFileToMap(filenames[i],i)
+    }
+
+
+
+
+
+    // ----------------------------------------------------
     //Get all the files within the folder named as the date
     
-    var request = new XMLHttpRequest();
+    // var request = new XMLHttpRequest();
 
-    request.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200) {
-            console.log("Resp:"+this.responseText);
-        }
-    };
-    request.open("GET", "./all_tracks/", true);
+    // request.onreadystatechange = function() {
+    //     if (this.readyState == 4 && this.status == 200) {
+    //         console.log("Resp:"+this.responseText);
+    //     }
+    // };
+    // request.open("GET", "filtered_tracks/", true);
+    // request.open("GET", "all_tracks", true);
     // request.open("GET", "all_tracks/2489506.gpx", true);
-    request.send();    
-    console.log("request sent");
+    // request.send();    
+    // console.log("request sent");
     // var files = document.querySelector("#files").files
     //     for(var i=0 ; i<files.length ; i++) {
     //         addGpxFileToMap(files[i],i);
@@ -99,14 +136,106 @@ function renderClicked(){
     // var fs = require('fs');
     // var files = fs.readdirSync('/all_tracks/');
     // console.log(files);
-    const testFolder = './tests/';
-    const fs = require('fs');
+    // const testFolder = './tests/';
+    // const fs = require('fs');
 
-    fs.readdir(testFolder, (err, files) => {
-        files.forEach(file => {
-            console.log(file);
-        });
-    })
+    // fs.readdir(testFolder, (err, files) => {
+    //     files.forEach(file => {
+    //         console.log(file);
+    //     });
+    // })
 }
 
+// file_content is the fíle's content as string
+function extractDate(file_content){
+    return '18-07-18';
+}
+
+function enableRenderButton(){
+
+    render_button.removeAttribute("disabled");
+}
+
+function fileInputChanged(event){
+    var input = event.target;
+    
+    var reader = new FileReader();
+
+    remainingFiles = input.files.length;
+
+    //TODO Must filter only the .gpx files
+    for (var i = 0; i < input.files.length; i++) {
+        
+        var file = input.files[i];
+        
+        if(file.name.endsWith(".gpx")){
+            
+            // Get the file's content
+            reader.onload = function(event){
+                var text = event.target.result;
+                console.log(text);
+
+                // Get the date of the file 
+                var date = extractDate(text);
+
+                // Check if the filename list of the date is empty
+                if(fileData[date] == null){
+                    fileData[date] = [];
+                }
+
+                // Add the filame to the date element in the JSON
+                fileData[date].push(file.name);
+
+                // Update the remaining files
+                remainingFiles -= 1;
+
+            };
+            
+            reader.readAsText(file);
+
+
+
+            // console.log(input.files[i].name);
+
+        }
+        else{
+            console.log("Invalid file:_Not a gpx file");
+        }
+
+    }
+    
+    waitAllFilesRead();
+
+    // Create the combo with each date in the JSON
+
+    // 
+
+    enableRenderButton();
+}
+
+function setupFileInput(){
+    
+    fileInput.addEventListener('change', fileInputChanged);
+}
+
+function waitAllFilesRead(){
+    if(remainingFiles == 0){
+        console.debug("done");
+        populateDateCombo();
+        return;
+    }
+    console.log("files_read: "+remainingFiles);
+    setTimeout(waitAllFilesRead, 1000);
+}
+
+function populateDateCombo(){
+    var result = ""
+    // for(var i=0 ; fileData. ; i++){
+    // }
+    for(var date in fileData){
+        result += "<option>"+date+"<option>"
+    }
+    date_combo.innerHTML = result;
+    
+}
 window.onload = main;
