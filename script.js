@@ -5,10 +5,14 @@ var date_combo;
 var OFFSET_TO_DATE_START = 6;
 var OFFSET_TO_DATE_END = 16;
 var map;
+var num_of_files;
+var num_
 
 function main(){
 
     date_combo = document.querySelector("#date");
+    date_combo.onchange = comboDateChanged;
+
     render_button = document.querySelector("#render");
     fileInput = document.querySelector('#files');
     
@@ -62,48 +66,20 @@ function renderGpxTrace(traceId, coordinatesList){
     });
 }
 
-function addGpxFileToMap(gpxFile, id){
-    // console.log("Digging " + gpxFile);
-    //The return value will be a list of lists [lon,lat]
-    var outputList = [];
-    //Request the content of the gpx file
-    var xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function( event ) {
-        file = event.target.responseText;
-        // console.log(">>>>>"+file);
-        //Instantiate an object to parse the xml file further
-        var parser = new DOMParser();
-        var doc = parser.parseFromString(file, "application/xml");
-
-        var elems = doc.getElementsByTagName("trkpt");
-
-        for(var i=0 ; i < elems.length ; i++){
-            var lat = elems[i].getAttribute("lat");
-            var lon = elems[i].getAttribute("lon");
-            //The coordinates must be in this order for the map to render them correctly
-            outputList.push([lon,lat]);
-        }
-        // console.log("EEEE "+outputList);
-        renderGpxTrace("mkasdkjasndjksandknasjkdnjkasndkasd"+(id+20), outputList);
-        // console.debug(id +" track done");
-    };
-    xhttp.open("GET", "all_tracks/"+gpxFile, false);
-    xhttp.send();
-}
-
 function renderClicked(){
     // Get the selected date from the combo
     var date = document.querySelector("#date").value;
 
     // Get all the filanames linked with the date in the JSON
-    var filenames = fileData[date];
+    var files = fileData[date];
 
-    console.debug("File asociated to date "+date+" : "+filenames);
+    console.debug("File asociated to date "+date+" : "+files);
 
     // Iterate over the filenames and add each one to the map
-    for (var i = 0 ; i < filenames.length ; i++) {
-        addGpxFileToMap(filenames[i],i);
+    for (var i = 0 ; i < files.length ; i++) {
+        addGpxFileToMap(files[i],i);
     }
+
 }
 
 // file_content is the fíle's content as string
@@ -148,7 +124,7 @@ function fileInputChanged(event){
                 }
 
                 // Add the filame to the date element in the JSON
-                fileData[date].push(file.name);
+                fileData[date].push(file);
 
                 // Update the remaining files
                 remainingFiles -= 1;
@@ -192,15 +168,52 @@ function waitAllFilesRead(){
     setTimeout(waitAllFilesRead, 1000);
 }
 
+function comboDateChanged(){
+    // console.log(this.value);
+    var n = fileData[this.value].length;
+    document.querySelector("#files_count").innerHTML = ""+n;
+}
+
 function populateDateCombo(){
     var result = ""
     // for(var i=0 ; fileData. ; i++){
     // }
+    var i = 0;
     for(var date in fileData){
         result += "<option>"+date+"</option>";
+        i += 1;
     }
     date_combo.innerHTML = result;
     date_combo.removeAttribute("disabled");
+
+    
     
 }
+
+function addGpxFileToMap(gpxFile, id){
+    //The return value will be a list of lists [lon,lat]
+    var outputList = [];
+    //Request the content of the gpx file
+    var reader = new FileReader();
+    reader.onload = function(event){
+        file = event.target.result;
+        //Instantiate an object to parse the xml file further
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(file, "application/xml");
+
+        var elems = doc.getElementsByTagName("trkpt");
+
+        for(var i=0 ; i < elems.length ; i++){
+            var lat = elems[i].getAttribute("lat");
+            var lon = elems[i].getAttribute("lon");
+            //The coordinates must be in this order for the map to render them correctly
+            outputList.push([lon,lat]);
+        }
+        renderGpxTrace(""+id, outputList);
+        console.debug(id +" track done");
+    };
+    //For not to continue until the request is done 
+    reader.readAsText(gpxFile);
+}
+
 window.onload = main;
