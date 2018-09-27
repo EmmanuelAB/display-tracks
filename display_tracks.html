@@ -15,8 +15,9 @@
 <body>
 
     <div id='header'>
-        <p class="element"> Choose the date you want to render</p>
+        <p class="element"> Choose the gpx files you want to render</p>
         <input class='element' type="file" id="files" multiple>
+        <p class="element"> Choose the date to filter your tracks</p>
         <select id="date" class="element" disabled>
             <option>-</option>
             <!-- <option>29-07-18</option> -->
@@ -24,10 +25,10 @@
         </select>
         <p>
             <span id="files_count"> 0 </span>
-            tracks selected
+            tracks with the selected date
         </p>
         <button id="render" class="element" disabled>Render Tracks</button>
-        <button id="render" class="element">Remove Tracks</button>
+        <button id="remove" class="element">Remove Tracks</button>
     </div>
     
     <div id='map'></div>

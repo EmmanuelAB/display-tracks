@@ -6,7 +6,9 @@ var OFFSET_TO_DATE_START = 6;
 var OFFSET_TO_DATE_END = 16;
 var map;
 var num_of_files;
-var num_
+var layers_ids = [];
+var remove_button;
+var layer_serial = 1;
 
 function main(){
 
@@ -15,6 +17,10 @@ function main(){
 
     render_button = document.querySelector("#render");
     fileInput = document.querySelector('#files');
+
+    remove_button = document.querySelector("#remove");
+    remove_button.onclick = removeClicked;
+
     
     initializeMap();
 
@@ -64,6 +70,7 @@ function renderGpxTrace(traceId, coordinatesList){
             //"line-width": lineWidth
         }
     });
+    layers_ids.push(traceId);
 }
 
 function renderClicked(){
@@ -77,9 +84,9 @@ function renderClicked(){
 
     // Iterate over the filenames and add each one to the map
     for (var i = 0 ; i < files.length ; i++) {
-        addGpxFileToMap(files[i],i);
+        addGpxFileToMap(files[i],layer_serial);
+        layer_serial += 1;
     }
-
 }
 
 // file_content is the fíle's content as string
@@ -176,18 +183,29 @@ function comboDateChanged(){
 
 function populateDateCombo(){
     var result = ""
-    // for(var i=0 ; fileData. ; i++){
-    // }
-    var i = 0;
+    var temp_list = [];
     for(var date in fileData){
-        result += "<option>"+date+"</option>";
-        i += 1;
+        temp_list.push(date);
     }
+    temp_list.sort();
+    temp_list.forEach(function(elem){
+        result += "<option>"+elem+"</option>";
+        // i += 1;
+    });
     date_combo.innerHTML = result;
     date_combo.removeAttribute("disabled");
+}
 
-    
-    
+function removeClicked(event){
+    console.debug("deleting "+layers_ids);
+    var n = layers_ids.length;
+    for (var i = 0; i < n; i++) {
+        // console.debug(e);
+        var e = layers_ids.pop();
+        map.removeLayer(e);
+        console.debug("layer "+e+ " removed");
+        
+    }
 }
 
 function addGpxFileToMap(gpxFile, id){
