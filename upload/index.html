@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <meta charset='utf-8' />
+    <title>Upload GPS Tracks</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+     
+</head>
+<body>
+
+    <div id='header'>
+    	<form enctype="multipart/form-data" action="upload_files.php" method="post">
+		    <p class="element"> Choose the gpx files you want to Upload</p>
+		    <input class='element' name="file[]" type="file" id="files" multiple>
+			<input class="element" type="submit" value="Upload">
+    	</form>
+    </div>
+    
+</body>
+</html>
